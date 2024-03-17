@@ -1,4 +1,5 @@
 import torch
+from torch.distributions import MultivariateNormal
 
 """
 LinCB is an interesting potential algorithm.
@@ -40,3 +41,13 @@ class LinCB:
         self.lambda_matrix_inv = (self.lambda_matrix_inv + self.lambda_matrix_inv.T) / 2
         # make sure!!!! that it is symmetric
         self.policy = self.lambda_matrix_inv @ self.phir_sum
+
+    def __call__(self, context, use_thompson_sampling=False):
+        if not use_thompson_sampling:
+            # [batch, vector_dims] @ [vector_dims] => [batch]
+            return context @ self.policy
+        
+        distrib = MultivariateNormal(loc=self.policy, covariance_matrix=self.lambda_matrix_inv)
+        policy_with_exploration = distrib.rsample()
+        
+        return context @ policy_with_exploration

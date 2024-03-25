@@ -23,8 +23,12 @@ class MLP(torch.nn.Module):
         x = self.fc2(x)
         return x
 
-def project_reward_to_probs(rewards: torch.Tensor, v_min: float, v_max: float, m: int, hl_gaussian_sigma_over_binsize: float):
+def create_hl_gaussian_target(rewards: torch.Tensor, v_min: float, v_max: float, m: int, hl_gaussian_sigma_over_binsize: float):
     """
+    Implementation of the Histogram Loss Gaussian (HL-Gauss) method used in
+    [https://arxiv.org/abs/2403.03950](Stop Regressing: Training Value Functions via Classification for Scalable Deep RL),
+    a paper released by DeepMind.
+
     TLDR: Call this function with the true rewards, and a set of bins to discretize them into,
     and it will return a categorial probability distribution.
 
@@ -41,6 +45,20 @@ def project_reward_to_probs(rewards: torch.Tensor, v_min: float, v_max: float, m
     -infty and +infty to make the probability distribution sum to 1.
 
     The mean of the Gaussian integral is the reward value.
+
+    
+    :params:
+     - `rewards`: a tensor of rewards. Shape: [batch]
+     - `v_min`: the minimum value of the reward distribution.
+     - `v_max`: the maximum value of the reward distribution.
+     - `m`: the number of bins to create.
+     - `hl_gaussian_sigma_over_binsize`: a hyperparameter. Useful to tune the approx. number of bins a reward Gaussian will
+        distribute to. 0.75 is a value used in the original paper.
+        See Page 6 for more info.
+
+    :returns:
+     - `probs`: a tensor representing the probability mass assigned to each bin, for each reward value specified. Shape: [batch, m]
+
     """
 
     bin_size = (v_max - v_min) / m
@@ -77,5 +95,4 @@ def project_reward_to_probs(rewards: torch.Tensor, v_min: float, v_max: float, m
 
 if __name__ == '__main__':
     rewards = torch.tensor([1, 2, 3, 4])
-    project_reward_to_probs(rewards, v_min=0, v_max=10, m=10, hl_gaussian_sigma_over_binsize=0.75)
-
+    create_hl_gaussian_target(rewards, v_min=0, v_max=10, m=10, hl_gaussian_sigma_over_binsize=0.75)

@@ -35,7 +35,8 @@ class DeepFM(nn.Module):
         user_dense_split = user_dense[..., :-1].view(batch_size, -1, self.dense_embedding_size)
         fm_interactions = torch.einsum('bik,bjk->bij', movie_dense_split, user_dense_split).view(batch_size, -1)
 
-        all_dense = torch.cat([movie_dense, user_dense], dim=-1)
+        all_dense = torch.cat([movie_dense[..., :-1], user_dense[..., :-1]], dim=-1)
+
         logit = self.mlp(all_dense) + fm_additive.unsqueeze(-1) + fm_interactions.sum(dim=-1, keepdim=True)
 
         return logit

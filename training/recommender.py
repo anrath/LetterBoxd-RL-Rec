@@ -22,17 +22,17 @@ def train_loop(train_user_ids=None, train_movie_ids=None):
     indexes = torch.randperm(len(ratings))
     batch_size = 16
 
-    user_ids = ratings['user_id'].unique()
-    movie_ids = ratings['movie_id'].unique()
+    all_user_ids = ratings['user_id'].unique()
+    all_movie_slugs = ratings['movie_id'].unique()
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     user_vector_size = 64
-    user_id_to_index = {user_id: i for i, user_id in enumerate(user_ids)}
-    user_embedding_table = nn.Embedding(len(user_ids), user_vector_size).to(device)
+    user_id_to_index = {user_id: i for i, user_id in enumerate(all_user_ids)}
+    user_embedding_table = nn.Embedding(len(all_user_ids), user_vector_size).to(device)
     movie_metadata_table = MovieMetadataTable(
         movie_ids_file="../data/movie_ids.json",
         movie_data_vectorized_file="../data/vectorizing/movie_data_vectorized.csv",
-        nlp_vectors_file="../data/vectorizing/nlp_vectors.csv",
+        nlp_vectors_file="../data/vectorizing/nlp_vectors.pt",
     )
     deepfm = DeepFM(
         movie_metadata_table.movie_vector_size,
@@ -58,16 +58,16 @@ def train_loop(train_user_ids=None, train_movie_ids=None):
     for batch_start in range(0, len(indexes), batch_size):
         batch = ratings.iloc[indexes[batch_start:batch_start + batch_size]]
 
-        movie_ids = batch['movie_id'].values
+        movie_slugs = [str(x) for x in batch['movie_id'].values]
         train_user_ids = batch['user_id'].values
         ratings = batch['rating_val'].values
 
         user_indices = torch.tensor([user_id_to_index[user_id] for user_id in train_user_ids], device=device)
         user_vectors = user_embedding_table(user_indices)
-        movie_vectors = movie_metadata_table(movie_ids).to(device)
+        movie_vectors = movie_metadata_table(movie_slugs).to(device)
 
-        predictions = deepfm(movie_vectors, user_vectors).squeeze(-1)
-        rewards = torch.tensor(ratings >= 7)
+        predictions = deepfm(movie_vectors.float(), user_vectors.float()).squeeze(-1)
+        rewards = torch.tensor(ratings >= 7, device=device)
 
         if loss_type == 'mse':
             # resembles learning q function

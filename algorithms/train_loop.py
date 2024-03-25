@@ -6,14 +6,18 @@ as trainable parameters.
 """
 
 import pandas as pd
+import json
 import torch
 
 def vectorize_string_array(string):
     return [int(x) for x in string[1:-1].split(" ")]
 
 class MovieEmbeddingTable:
-    def __init__(self, movie_metadata_file, nlp_vectors_file):
-        self.movie_metadata = pd.read_csv(movie_metadata_file)
+    def __init__(self, movie_ids_file, movie_data_vectorized_file, nlp_vectors_file):
+        with open(movie_ids_file, 'r') as f:
+            self.movie_ids = json.load(f)
+        self.movie_id_to_index = {movie_id: i for i, movie_id in enumerate(self.movie_ids)}
+        self.movie_metadata = pd.read_csv(movie_data_vectorized_file)
 
         """
         convert to tensor:
@@ -47,16 +51,22 @@ class MovieEmbeddingTable:
         self.overview_vectors = nlp_vectors['overview_vectors']
         self.title_vectors = nlp_vectors['title_vectors']
 
-    def __call__(self, movie_id):
+    def __call__(self, movie_index):
+        if type(movie_index) == str:
+            movie_index = self.movie_id_to_index[movie_index]
+        elif type(movie_index) == list:
+            movie_index = [self.movie_id_to_index[movie_id] for movie_id in movie_index]
+
         return torch.cat([
-            self.movie_tensor[movie_id],
-            self.overview_vectors[movie_id],
-            self.title_vectors[movie_id],
+            self.movie_tensor[movie_index],
+            self.overview_vectors[movie_index],
+            self.title_vectors[movie_index],
         ], dim=-1)
 
 class Trainer:
-    def __init__(self):
-        pass
+    def __init__(self, movie_data_file, reviews_file):
+        self.reviews = pd.read_csv(reviews_file)
+        pd.read_csv(movie_data_file)['movie_id']
 
     def train_batch(self):
         pass

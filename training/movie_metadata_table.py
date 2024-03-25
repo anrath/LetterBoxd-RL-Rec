@@ -44,6 +44,12 @@ class MovieMetadataTable:
         self.overview_vectors = nlp_vectors['overview_vectors']
         self.title_vectors = nlp_vectors['title_vectors']
 
+        self.movie_vector_size = (
+            self.movie_tensor.shape[-1] +
+            self.overview_vectors.shape[-1] +
+            self.title_vectors.shape[-1]
+        )
+
     def __call__(self, movie_index):
         if type(movie_index) == str:
             movie_index = self.movie_id_to_index[movie_index]

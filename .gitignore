@@ -4,6 +4,7 @@ data/*.xlsx
 */ignore
 runs/temp/*
 runs/*copy*
+runs/review/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

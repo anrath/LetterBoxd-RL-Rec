@@ -32,9 +32,10 @@ def process_json_files(directory):
     return combined_df
 
 # Directory containing the JSON files
-temp_directory = '/root/projects/school/LetterBoxd-RL-Rec/runs/temp'
+temp_directory = '/root/projects/school/LetterBoxd-RL-Rec/runs/review'
 
 # Process the JSON files and save the resulting DataFrame to a CSV file
 df = process_json_files(temp_directory)
-csv_file_path = 'user_reviews.csv'
-df.to_csv(csv_file_path, index=False)
+df = df[['date', 'film_slug', 'user', 'rating', 'review']]
+csv_file_path = 'user_reviews.tsv'
+df.to_csv(csv_file_path, sep='\t', index=False)

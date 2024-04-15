@@ -17,9 +17,11 @@ class DeepFM(nn.Module):
         mlp_input_size = (num_dense_movie_embeddings + num_dense_user_embeddings) * dense_embedding_size
         mlp_layers = []
         for i in range(len(mlp_sizes)):
-            mlp_layers.append(nn.Linear(mlp_input_size, mlp_sizes[i]))
-            if i != len(mlp_sizes) - 1:
-                mlp_layers.append(nn.ReLU())
+            # skip input projection layer if the input is already the correct size
+            if i > 0 or (mlp_input_size != mlp_sizes[0]):
+                mlp_layers.append(nn.Linear(mlp_input_size, mlp_sizes[i]))
+                if i != len(mlp_sizes) - 1:
+                    mlp_layers.append(nn.ReLU())
             mlp_input_size = mlp_sizes[i]
 
         self.mlp = nn.Sequential(*mlp_layers)

@@ -42,13 +42,14 @@ def train_loop(train_user_ids=None, train_movie_ids=None):
         dense_embedding_size=16,
         mlp_sizes=[16, 16, 1],
     ).to(device)
+    deepfm.apply(add_dropout)
 
     # note: if we want to get a massive speedup,
     # we can probably use a sparse optimization scheme somehow
     optim = torch.optim.Adam([
         *deepfm.parameters(),
         *user_embedding_table.parameters()
-    ], lr=0.001)
+    ], lr=0.001, weight_decay=1e-5)  # L2 regularization
 
     # determine how to give a reward
     # we will just give a reward if the user rated the movie >= 7/10
@@ -81,5 +82,9 @@ def train_loop(train_user_ids=None, train_movie_ids=None):
         optim.step()
 
         print(loss.item())
+
+def add_dropout(module):
+    if isinstance(module, nn.Linear):
+        module.dropout = nn.Dropout(p=0.5)
 
 train_loop()

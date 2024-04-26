@@ -1,4 +1,4 @@
-access_token = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZDE5Nzg2YTZmMzM5M2U1NWFmYzNkOGI3Yjg1NjYzZiIsInN1YiI6IjY1ZmMxODExN2Y2YzhkMDE2MzZjMWY2ZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.6eQ5wlK_vJ1uB8wrYd5i2S1zYin__5JMaBg80OW1eOQ"
+access_token = ""
 
 import aiohttp
 import asyncio
